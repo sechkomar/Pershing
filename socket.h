@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 
-#include "result.h"
+#include "response.h"
 #include "action.h"
 
 class Socket 
@@ -34,10 +34,10 @@ public:
 
 	void Send(const ActionMessage& act) const {
 		
-		send(sock, act.getStringActionCode(), sizeof(uint32_t), 0);
-		if (act.dataLength != NULL) { 
-			send(sock, act.getStringDataLength(), sizeof(uint32_t), 0);
-			send(sock, act.data, act.dataLength, 0);
+		send(sock, act.get_string_action_code(), sizeof(uint32_t), 0);
+		if (act.data_length != NULL) { 
+			send(sock, act.get_string_data_length(), sizeof(uint32_t), 0);
+			send(sock, act.data, act.data_length, 0);
 		}
 	};
 
@@ -47,26 +47,30 @@ public:
 		
 		int received = recv(sock, reinterpret_cast<char*>(&resCode), sizeof(uint32_t), 0);
 		if (received < 4) {
-			res = ResponseMessage(Result::NO_RESULT, 0, "");
+			res = ResponseMessage(Response::NO_RESULT, 0, "");
 			return;
 		}
 			
 		received = recv(sock, reinterpret_cast<char*>(&datLen), sizeof(uint32_t), 0);
 		if (received < 4) {
-			res = ResponseMessage(Result::NO_RESULT, 0, "");
+			res = ResponseMessage(Response::NO_RESULT, 0, "");
 			return;
 		}
 			
-		size_t bytesLeft = datLen, size;
-		char* datBuf = new char[datLen];
+		size_t bytesLeft = datLen;
+		size_t size;
+
+		char* datBuf = new char[datLen + 1];
 		while (bytesLeft > 0) {
 			size = recv(sock, datBuf + (datLen - bytesLeft), bytesLeft, 0);
 			bytesLeft -= size;
 		}
-		res = ResponseMessage(static_cast<Result>(resCode), datLen, datBuf);
+		datBuf[datLen] = '\0';
+		// THERE THERE -------------------------------------------------------------------
+		res.set(static_cast<Response>(resCode), datLen, datBuf);
 	};
 
-	void MakeMove(const ActionMessage& act, ResponseMessage &msg) const {
+	void make_move(const ActionMessage& act, ResponseMessage &msg) const {
 		Send(act);
 		Receive(msg);
 	}

@@ -1,8 +1,9 @@
 #pragma once
 #include <inttypes.h>
 
-enum class Action: uint32_t
-{
+#include "common.h"
+
+enum class Action: uint32_t {
     LOGIN = 1,
     LOGOUT = 2,
     MOVE = 3,
@@ -10,33 +11,27 @@ enum class Action: uint32_t
     MAP = 10
 };
 
-struct ActionMessage	
-{
-	ActionMessage(const Action &code, std::string &msg) : actionCode(code)
-	{
-		dataLength = msg.length();
-		if (dataLength != 0)
-		{
-			data = new char[dataLength];
-			memcpy_s(data, dataLength, msg.c_str(), msg.length());
-		}
-		else
-			data = nullptr;
+struct ActionMessage {
+
+	Action action_code;
+	size_t data_length;
+	char* data;
+
+
+	ActionMessage(const Action &code, std::string &msg) : action_code(code) {
+		data_length = msg.length();
+		this->data = new char[1]; //for initialization
+		copy_string(this->data, data_length, msg.c_str());
 	}
 
-	const char* getStringActionCode() const
-	{
-		return reinterpret_cast<const char*>(&actionCode);
+	const char* get_string_action_code() const {
+		return reinterpret_cast<const char*>(&action_code);
 	}
-	const char* getStringDataLength() const
-	{
-		return reinterpret_cast<const char*>(&dataLength);
+	const char* get_string_data_length() const {
+		return reinterpret_cast<const char*>(&data_length);
 	}
-    Action actionCode;
-    size_t dataLength;
-    char* data;
-	~ActionMessage()
-	{
+
+	~ActionMessage() {
 		delete[] data;
 		data = nullptr;
 	}
