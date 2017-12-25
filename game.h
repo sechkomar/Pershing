@@ -1,61 +1,70 @@
 #pragma once
-
-#include <map>
-#include <string>
-#include <vector>
+ 
 #include "objects.h"
 #include "socket.h"
+#include <map>
+#include <fstream>
+#include <vector>
+#include <fstream>
+#include <iostream>
+#include <set>
+#include <vector>
 
 
-class Game
+struct Game
 {
-public:
-	Home home;
-	std::map<uint32_t, Train> trains;
-	std::string idx;
-	std::map<uint32_t, std::vector<Endpoint>> map;
-
-	std::map<uint32_t, Market> markets;
-	std::map<uint32_t, Town> towns;
-
-	std::map<uint32_t, uint32_t> markets_location; //market_id -> post_id
-
+	//--	SYSTEM OBJECTS
 	Socket socket;
+	std::ofstream log;
 
-	std::map<uint32_t, std::map<uint32_t, std::map<uint32_t, std::vector<uint32_t>>>> min_pathes;
+	//--	GAME DATA
+	std::string idx;
+	uint32_t turn_number = 1;
+	uint32_t rating;
+	std::string username;
 
-	void init_static_map();
-	bool init_dynamic_map();
+	//--	GAME OBJECTS
+	Home home;
+	std::map<uint32_t, std::vector<Endpoint>> map;
+	std::map<uint32_t, std::map<uint32_t, uint32_t>> edges_lens;
+	std::map<uint32_t, Train> trains;
+	std::map<uint32_t, Town> towns;
+	std::map<uint32_t, Market> markets;
+	std::map<uint32_t, Storage> storages;
 
+	//--	MAP.CPP
 	void get_layer_response(layer layer_type, ResponseMessage& resp);
+	bool load_static_map();
+	bool load_dynamic_map();
 
-	bool init();
-
-	bool login(std::string name);
-
+	//--	CONNECTIONS.CPP
+	bool init(std::string username, uint32_t num_players, std::string game_name, std::string security_key = "");
+	bool login(json jLogin);
 	int end();
 
+	//--	MOVING.CPP
 	bool move(uint32_t line_idx, int speed, uint32_t train_idx);
-
+	bool move(uint32_t point_idx, uint32_t train_idx);
 	bool turn();
+	bool turn(uint32_t num_of_turns_to_pass);	
 
-	bool update();
+	//--	GAME.CPP
+	bool upgrade(std::list<uint32_t> posts_, std::list<uint32_t> trains_);
+	void set_train_point(Train & train);
+	void update_train_point(Train & train);
+	void go(Train &tr, post_type market_type);
+	std::function<float(uint32_t train_cap, uint32_t idx, uint32_t len)> get_profit;
 
-	void print_trains();
+	//--	PRINTS.CPP
+	std::string print_trains();
+	std::string print_marketplaces();
+	std::string print_towns();
+	void print_lines();
+	void print_info();
+	void print_log(std::string);
 
-	void print_markets();
-
-	void get_login_response(json jLoginResp);
-
-	void Dijkstra(const size_t &);
-
-	void shopping(const std::vector<uint32_t> &, const uint32_t &);
-
-	std::map<uint32_t, std::map<uint32_t, uint32_t>> get_min_markets_pathes();
-	std::map<uint32_t, uint32_t> get_replenishments();
-	std::map<uint32_t, uint32_t> get_capacities();
-	std::map<uint32_t, uint32_t> get_markets_product();
-	std::vector<uint32_t> get_market_point_id();
-	std::vector<uint32_t> get_full_path(std::vector<uint32_t>);
+	~Game() {
+		log.close();
+	}
 };
 
