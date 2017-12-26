@@ -62,7 +62,7 @@ bool Game::login(json jLogin) {
 		set_train_point(trains[train.idx]);
 	}
 
-	std::cout << ">> logged as " << jLogin["name"] << std::endl;
+	print_log(">> logged as " + username);
 	return true;
 }
 
@@ -70,8 +70,10 @@ int Game::end() {
 	ActionMessage act = ActionMessage(Action::LOGOUT, std::string());
 	ResponseMessage resp;
 	socket.make_move(act, resp);
+	
 
-	std::cout << ">> logout" << std::endl;
+	print_log(">> logout\n bye, " + username);
+
 
 	socket.Disconnect();
 

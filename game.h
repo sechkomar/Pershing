@@ -63,6 +63,9 @@ struct Game
 	void print_info();
 	void print_log(std::string);
 
+	void upgrade_all();
+	void game_step();
+
 	~Game() {
 		log.close();
 	}

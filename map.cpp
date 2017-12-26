@@ -66,7 +66,7 @@ bool Game::load_dynamic_map() {
 		}
 	}
 
-	rating = jMapResp["rating"][username];
+	rating = jMapResp["rating"][idx]["rating"];
 
 	std::list<Train> trainsList = jMapResp.at("train").get<std::list<Train>>();
 	for (auto train : trainsList) {

@@ -1,4 +1,4 @@
-﻿ 
+﻿
 #include "game.h"
 #include "dijkstra.h"
 
@@ -49,15 +49,16 @@ void Game::update_train_point(Train & train) {
 					if (train.position == line.length) train.last_point_id = line.end;
 				}
 				else if (train.position == 0) train.last_point_id = line.end;
+				break;
 			}
 		}
 	}
 }
- 
+
 void Game::set_train_point(Train & train) {
 	for (auto lines : map) {
 		for (auto line : lines.second) {
-			if (line.line_idx == train.line_idx) {				
+			if (line.line_idx == train.line_idx) {
 				if (line.direction == 1) {
 					if (train.position == 0)
 						train.last_point_id = lines.first;
@@ -72,6 +73,7 @@ void Game::set_train_point(Train & train) {
 						train.last_point_id = lines.first;
 					else train.last_point_id = 0;
 				}
+				break;
 			}
 		}
 	}
@@ -155,4 +157,45 @@ void Game::go(Train &tr, post_type market_type) {
 		auto best = d.get_best_way(towns.at(home.post_id).point_id, tr.goods_capacity, tr.last_point_id, passed, possible_posts, get_profit);
 		tr.current_path = best;
 	}
+}
+
+
+void Game::game_step() {
+	std::list<uint32_t> trains_to_upgrade;
+	std::list<uint32_t> towns_to_upgrade;
+
+	if (towns.at(home.post_id).armor * 1.5 >= towns.at(home.post_id).armor_capacity &&
+		towns.at(home.post_id).product * 1.5 >= towns.at(home.post_id).product_capacity) {
+
+		towns_to_upgrade.push_back(home.post_id);
+		upgrade(towns_to_upgrade, trains_to_upgrade);
+		towns_to_upgrade.clear();
+	}
+
+	int i = 0;
+	for (auto train : trains) {
+
+		if (train.second.player_id == idx) {
+
+			if (train.second.last_point_id == towns.at(home.post_id).point_id &&
+				train.second.next_level_price * 2 <= towns.at(home.post_id).armor) {
+
+				trains_to_upgrade.push_back(train.second.idx);
+				upgrade(towns_to_upgrade, trains_to_upgrade);
+				trains_to_upgrade.clear();
+			}
+
+
+			if (i < 5) 
+				go(trains.at(train.second.idx), post_type::MARKET);
+			else 
+				go(trains.at(train.second.idx), post_type::STORAGE);
+			if (trains.at(train.second.idx).current_path.size() != 0) 
+				move(trains.at(train.second.idx).current_path.front(), train.second.idx);
+
+
+			i++;
+		}
+	}
+	turn();
 }
