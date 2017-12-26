@@ -8,7 +8,6 @@ using json = nlohmann::json;
 struct Home {
 	uint32_t idx;
 	uint32_t post_id;
-	uint32_t point_id;
 };
 
 struct Event {

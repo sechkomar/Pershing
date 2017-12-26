@@ -1,4 +1,4 @@
-
+ 
 #include <limits.h>
 #include <iostream>
 #include "dijkstra.h"
@@ -43,18 +43,14 @@ std::map<uint32_t, std::pair<uint32_t, std::vector<uint32_t>>> dijkstra::get_min
 		}
 	}
 
-	return get_full_min_pathes(from, dists, parents);
+	return  get_full_min_pathes(from, dists, parents);
 }
 
-std::vector<uint32_t> dijkstra::get_best_way(uint32_t home_point,
-	uint32_t train_cap,
-	uint32_t from,
-	std::vector<std::pair<uint32_t, uint32_t>> pass_edges,
+std::vector<uint32_t> dijkstra::get_best_way(uint32_t home_point, uint32_t train_cap, uint32_t from, std::vector<std::pair<uint32_t, uint32_t>> pass_edges,
 	std::map<uint32_t, uint32_t> possible_points,
-	std::function<float(uint32_t train_cap, uint32_t post_idx, uint32_t len)> fun,
-	bool home) {
+	std::function<float(uint32_t train_cap, uint32_t post_idx, uint32_t len)> fun, bool home) {
 
-	for (size_t i = 0; i < pass_edges.size(); i++) {
+	for (size_t i = 0; i < pass_edges.size(); i++) {	
 		if (pass_edges[i].first != pass_edges[i].second) {
 			edges_lens.at(pass_edges[i].first).erase(pass_edges[i].second);
 			edges_lens.at(pass_edges[i].second).erase(pass_edges[i].first);
@@ -62,6 +58,9 @@ std::vector<uint32_t> dijkstra::get_best_way(uint32_t home_point,
 	}
 
 	for (size_t i = 0; i < pass_edges.size(); i++) {
+		/*for (auto edge : edges_lens) {
+			edges_lens.at(edge.first).erase(pass_edges[i].second);
+		}*/
 		if (pass_edges[i].second != home_point) {
 			edges_lens.erase(pass_edges[i].second);
 		}

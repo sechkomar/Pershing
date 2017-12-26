@@ -24,7 +24,7 @@ struct Game
 	std::string username;
 
 	//--	GAME OBJECTS
-	Town home;
+	Home home;
 	std::map<uint32_t, std::vector<Endpoint>> map;
 	std::map<uint32_t, std::map<uint32_t, uint32_t>> edges_lens;
 	std::map<uint32_t, Train> trains;
@@ -53,9 +53,6 @@ struct Game
 	void set_train_point(Train & train);
 	void update_train_point(Train & train);
 	void go(Train &tr, post_type market_type);
-	void upgrade_all();
-	void game_step();
-
 	std::function<float(uint32_t train_cap, uint32_t idx, uint32_t len)> get_profit;
 
 	//--	PRINTS.CPP
