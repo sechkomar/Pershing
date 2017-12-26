@@ -68,20 +68,20 @@ bool Game::turn() {
 	return true;
 }
 
-bool Game::turn(uint32_t num_of_turns_to_pass) {
-	ActionMessage act = ActionMessage(Action::TURN, std::string("{}"));
-	for (uint32_t i = 0; i < num_of_turns_to_pass; i++) {
-		ResponseMessage resp;
-		socket.make_move(act, resp);
-
-		if (resp.resp_code != Response::OKEY) {
-			return false;
-		}
-	}
-
-	turn_number += num_of_turns_to_pass;
-	load_dynamic_map();
-
-	print_log(">> turn " + std::to_string(turn_number) + "\n");
-	return true;
-}
+//bool Game::turn(uint32_t num_of_turns_to_pass) {
+//	ActionMessage act = ActionMessage(Action::TURN, std::string("{}"));
+//	for (uint32_t i = 0; i < num_of_turns_to_pass; i++) {
+//		ResponseMessage resp;
+//		socket.make_move(act, resp);
+//
+//		if (resp.resp_code != Response::OKEY) {
+//			return false;
+//		}
+//	}
+//
+//	turn_number += num_of_turns_to_pass;
+//	load_dynamic_map();
+//
+//	print_log(">> turn " + std::to_string(turn_number) + "\n");
+//	return true;
+//}

@@ -62,9 +62,6 @@ std::vector<uint32_t> dijkstra::get_best_way(uint32_t home_point,
 	}
 
 	for (size_t i = 0; i < pass_edges.size(); i++) {
-		/*for (auto edge : edges_lens) {
-			edges_lens.at(edge.first).erase(pass_edges[i].second);
-		}*/
 		if (pass_edges[i].second != home_point) {
 			edges_lens.erase(pass_edges[i].second);
 		}

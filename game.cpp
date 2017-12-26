@@ -1,4 +1,4 @@
-﻿ 
+﻿
 #include "game.h"
 #include "dijkstra.h"
 
@@ -6,17 +6,6 @@
 
 bool Game::upgrade(std::list<uint32_t> posts_, std::list<uint32_t> trains_) {
 	json jUpg;
-	/*std::vector<uint32_t> postsIdx;
-	for (auto post : posts_) {
-		postsIdx.push_back(post.idx);
-	}
-	jUpg["post"] = postsIdx;
-
-	std::vector<uint32_t> trainsIdx;
-	for (auto train : trains_) {
-		trainsIdx.push_back(train.idx);
-	}
-	jUpg["train"] = trainsIdx;*/
 
 	jUpg["post"] = posts_;
 	jUpg["train"] = trains_;
@@ -33,49 +22,56 @@ bool Game::upgrade(std::list<uint32_t> posts_, std::list<uint32_t> trains_) {
 
 	load_dynamic_map();
 
+	print_log(">> upgrade " + strUpg);
 	//std::cout << ">> upgrade" << std::endl;
 	return true;
 }
 
 void Game::update_train_point(Train & train) {
+
 	if (train.cooldown != 0) {
-		train.last_point_id = towns.at(home.post_id).point_id;
+		train.last_point_id = home.point_id;
 		return;
 	}
 	if (train.player_id == idx && train.speed == 0) {
-		for (auto line : map.at(train.last_point_id)) {
+		for (auto line : map[train.last_point_id]) {
 			if (train.line_idx == line.line_idx) {
 				if (line.direction == 1) {
-					if (train.position == line.length) train.last_point_id = line.end;
+					if (train.position == line.length) {
+						train.last_point_id = line.end;
+					}
 				}
-				else if (train.position == 0) train.last_point_id = line.end;
+				else if (train.position == 0) {
+					train.last_point_id = line.end;
+				}
+				break;
 			}
 		}
 	}
 }
- 
-void Game::set_train_point(Train & train) {
-	for (auto lines : map) {
-		for (auto line : lines.second) {
-			if (line.line_idx == train.line_idx) {				
-				if (line.direction == 1) {
-					if (train.position == 0)
-						train.last_point_id = lines.first;
-					else if (train.position == line.length)
-						train.last_point_id = line.end;
-					else train.last_point_id = 0;
-				}
-				else {
-					if (train.position == 0)
-						train.last_point_id = line.end;
-					else if (train.position == line.length)
-						train.last_point_id = lines.first;
-					else train.last_point_id = 0;
-				}
-			}
-		}
-	}
-}
+
+//void Game::set_train_point(Train & train) {
+//	for (auto lines : map) {
+//		for (auto line : lines.second) {
+//			if (line.line_idx == train.line_idx) {				
+//				if (line.direction == 1) {
+//					if (train.position == 0)
+//						train.last_point_id = lines.first;
+//					else if (train.position == line.length)
+//						train.last_point_id = line.end;
+//					else train.last_point_id = 0;
+//				}
+//				else {
+//					if (train.position == 0)
+//						train.last_point_id = line.end;
+//					else if (train.position == line.length)
+//						train.last_point_id = lines.first;
+//					else train.last_point_id = 0;
+//				}
+//			}
+//		}
+//	}
+//}
 
 void Game::go(Train &tr, post_type market_type) {
 
@@ -85,7 +81,7 @@ void Game::go(Train &tr, post_type market_type) {
 			tr.current_path.erase(tr.current_path.begin());
 		}
 
-		dijkstra d(edges_lens, 100);
+		dijkstra d(edges_lens, map.size());
 
 		std::map<uint32_t, uint32_t> possible_posts;
 		std::vector<std::pair<uint32_t, uint32_t>> passed;
@@ -95,6 +91,7 @@ void Game::go(Train &tr, post_type market_type) {
 			for (auto m : markets) {
 				possible_posts[m.second.point_id] = m.first;
 			}
+
 			get_profit = [this](uint32_t train_cap, uint32_t post_idx, uint32_t len) {
 				Market m = markets[post_idx];
 				return min(train_cap, min(m.product + len * m.replenishment, m.product_capacity)) / float(2 * len);
@@ -148,12 +145,62 @@ void Game::go(Train &tr, post_type market_type) {
 		}
 
 		if (tr.goods_capacity <= tr.goods * 1.5) {
-			auto best = d.get_best_way(towns.at(home.post_id).point_id, tr.goods_capacity, tr.last_point_id, passed, possible_posts, get_profit, true);
+			auto best = d.get_best_way(home.point_id, tr.goods_capacity, tr.last_point_id, passed,
+				possible_posts, get_profit, true);
 			tr.current_path = best;
 			return;
 		}
 
-		auto best = d.get_best_way(towns.at(home.post_id).point_id, tr.goods_capacity, tr.last_point_id, passed, possible_posts, get_profit);
+		auto best = d.get_best_way(home.point_id, tr.goods_capacity, tr.last_point_id,
+			passed, possible_posts, get_profit);
 		tr.current_path = best;
 	}
+}
+
+void Game::upgrade_all() {
+	std::list<uint32_t> trains_to_upgrade;
+	std::list<uint32_t> towns_to_upgrade;
+
+	if (home.armor * 1.5 >= home.armor_capacity &&
+		home.product * 1.5 >= home.product_capacity) {
+
+		towns_to_upgrade.push_back(home.idx);
+		upgrade(towns_to_upgrade, trains_to_upgrade);
+	}
+
+	for (auto train : trains) {
+		if (train.second.player_id == idx) {
+
+			if (train.second.last_point_id == home.point_id &&
+				train.second.next_level_price * 2 <= home.armor) {
+
+				trains_to_upgrade.push_back(train.second.idx);
+				upgrade(towns_to_upgrade, trains_to_upgrade);
+				break;
+			}
+
+		}
+	}
+
+}
+
+void Game::game_step() {
+
+	upgrade_all();
+
+	int i = 0;
+	for (auto train : trains) {
+		if (train.second.player_id == idx) {
+			if (i < 5)
+				go(trains.at(train.second.idx), post_type::MARKET);
+			else
+				go(trains.at(train.second.idx), post_type::STORAGE);
+
+			if (trains.at(train.second.idx).current_path.size() != 0)
+				move(trains.at(train.second.idx).current_path.front(), train.second.idx);
+			i++;
+		}
+	}
+
+	turn();
 }
